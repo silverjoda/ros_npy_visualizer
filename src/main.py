@@ -11,7 +11,7 @@ from sensor_msgs.msg import Imu
 import tf.transformations
 def load_data(data_types_list):
     for dt in data_types_list:
-        filepath = '../data/train/{}.npy'.format(dt)
+        filepath = '../data/train/new/{}.npy'.format(dt)
         if dt == "timestamp":
             vars()[dt] = np.load(filepath)[:, np.newaxis]
         else:
