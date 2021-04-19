@@ -1,8 +1,11 @@
 import time
 import numpy as np
 import rospy
-from geometry_msgs.msg import TwistStamped, PoseStamped
+import tf2_ros
+import tf2_msgs.msg
+from geometry_msgs.msg import Twist, TwistStamped, Pose, PoseStamped, Vector3Stamped, TransformStamped
 from std_msgs.msg import String
+from sensor_msgs.msg import Imu
 
 def load_data(data_types_list):
     for dt in data_types_list:
@@ -21,50 +24,70 @@ if __name__=="__main__":
 
     # Start ros
     node = rospy.init_node("ros_npy_visualizer")
+    rate = rospy.Rate(100)
 
     # Make topic publishers
-    action_publisher = rospy.Publisher("npy_joystick_action", TwistStamped, queue_size=10)
-    vel_publisher = rospy.Publisher("npy_vel", TwistStamped, queue_size=10)
+    action_publisher = rospy.Publisher("npy_joystick_action", Imu, queue_size=10)
+    vel_publisher = rospy.Publisher("npy_vel", Imu, queue_size=10)
     position_publisher = rospy.Publisher("npy_pose", PoseStamped, queue_size=10)
 
-    loop_period = 0.01
+    br = tf2_ros.TransformBroadcaster()
     d_len = len(vars["action"])
 
     for i in range(d_len):
-        t1 = time.time()
-
         # Action
-        action_msg = TwistStamped()
+        action_msg = Imu()
+        action_msg.header.frame_id = "buggy"
         action_msg.header.stamp = rospy.Time.now()
-        action_msg.twist.linear.x = vars["action"][0]
-        action_msg.twist.angular.z = vars["action"][1]
+        action_msg.linear_acceleration.x = float(vars["action"][i][0])
+        action_msg.angular_velocity.z = float(vars["action"][i][1])
         action_publisher.publish(action_msg)
 
         # Velocity
-        vel_msg = TwistStamped()
+        vel_msg = Imu()
+        vel_msg.header.frame_id = "buggy"
         vel_msg.header.stamp = rospy.Time.now()
-        vel_msg.twist.linear.x = vars["vel"][0]
-        vel_msg.twist.linear.y = vars["vel"][1]
-        vel_msg.twist.linear.z = vars["vel"][2]
-        vel_msg.twist.angular.x = vars["action"][0]
-        vel_msg.twist.angular.y = vars["action"][1]
-        vel_msg.twist.angular.z = vars["action"][2]
+        vel_msg.linear_acceleration.x = float(vars["vel"][i][0])
+        vel_msg.linear_acceleration.y = float(vars["vel"][i][1])
+        vel_msg.linear_acceleration.z = float(vars["vel"][i][2])
+        vel_msg.angular_velocity.x = 0.#float(vars["angular_vel"][i][0])
+        vel_msg.angular_velocity.y = 0.#float(vars["angular_vel"][i][1])
+        vel_msg.angular_velocity.z = 0.#float(vars["angular_vel"][i][2])
         vel_publisher.publish(vel_msg)
 
         # Pose
         pose_msg = PoseStamped()
+        pose_msg.header.frame_id = "origin"
         pose_msg.header.stamp = rospy.Time.now()
-        pose_msg.pose.position.x = vars["position"][0]
-        pose_msg.pose.position.y = vars["position"][1]
-        pose_msg.pose.position.z = vars["position"][2]
-        pose_msg.pose.orientation.x = vars["rotation"][0]
-        pose_msg.pose.orientation.y = vars["rotation"][1]
-        pose_msg.pose.orientation.z = vars["rotation"][2]
-        pose_msg.pose.orientation.w = vars["rotation"][3]
+        pose_msg.pose.position.x = float(vars["position"][i][0])
+        pose_msg.pose.position.y = float(vars["position"][i][1])
+        pose_msg.pose.position.z = float(vars["position"][i][2])
+        pose_msg.pose.orientation.w = float(vars["rotation"][i][0])
+        pose_msg.pose.orientation.x = float(vars["rotation"][i][1])
+        pose_msg.pose.orientation.y = float(vars["rotation"][i][2])
+        pose_msg.pose.orientation.z = float(vars["rotation"][i][3])
         position_publisher.publish(pose_msg)
 
-        t2 = time.time()
-        while (t2 - t1) < loop_period: pass
+        t = TransformStamped()
+
+        t.header.stamp = rospy.Time.now()
+        t.header.frame_id = "origin"
+        t.child_frame_id = "buggy"
+        t.transform.translation.x = float(vars["position"][i][0])
+        t.transform.translation.y = float(vars["position"][i][1])
+        t.transform.translation.z = float(vars["position"][i][2])
+
+        t.transform.rotation.w = float(vars["rotation"][i][0])
+        t.transform.rotation.x = float(vars["rotation"][i][1])
+        t.transform.rotation.y = float(vars["rotation"][i][2])
+        t.transform.rotation.z = float(vars["rotation"][i][3])
+
+
+        br.sendTransform(t)
+
+        if i % 100 == 0:
+            print(i)
+        rate.sleep()
 
     print("Done")
 
