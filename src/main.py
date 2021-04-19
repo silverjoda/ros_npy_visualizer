@@ -57,14 +57,16 @@ if __name__=="__main__":
         pose_msg.pose.position.x = vars["position"][0]
         pose_msg.pose.position.y = vars["position"][1]
         pose_msg.pose.position.z = vars["position"][2]
-        pose_msg.pose.orientation.x = vars["orientation"][0]
-        pose_msg.pose.orientation.y = vars["orientation"][1]
-        pose_msg.pose.orientation.z = vars["orientation"][2]
-        pose_msg.pose.orientation.w = vars["orientation"][3]
+        pose_msg.pose.orientation.x = vars["rotation"][0]
+        pose_msg.pose.orientation.y = vars["rotation"][1]
+        pose_msg.pose.orientation.z = vars["rotation"][2]
+        pose_msg.pose.orientation.w = vars["rotation"][3]
         position_publisher.publish(pose_msg)
 
         t2 = time.time()
-        while (t2 - t2) < loop_period: pass
+        while (t2 - t1) < loop_period: pass
+
+    print("Done")
 
 
 
