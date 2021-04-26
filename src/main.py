@@ -9,6 +9,7 @@ from geometry_msgs.msg import Twist, TwistStamped, Pose, PoseStamped, Vector3Sta
 from std_msgs.msg import String
 from sensor_msgs.msg import Imu
 import tf.transformations
+
 def load_data(data_types_list):
     for dt in data_types_list:
         filepath = '../data/train/{}.npy'.format(dt)
