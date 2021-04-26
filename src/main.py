@@ -11,7 +11,7 @@ from sensor_msgs.msg import Imu
 import tf.transformations
 def load_data(data_types_list):
     for dt in data_types_list:
-        filepath = '../data/train/new/{}.npy'.format(dt)
+        filepath = '../data/train/{}.npy'.format(dt)
         if dt == "timestamp":
             vars()[dt] = np.load(filepath)[:, np.newaxis]
         else:
@@ -20,7 +20,7 @@ def load_data(data_types_list):
 
 if __name__=="__main__":
     # Load data
-    data_types_list = ["action", "angular_vel", "position", "rotation", "timestamp", "vel"]
+    data_types_list = ["action", "angular", "position", "rotation", "timestamp", "vel"]
     vars = load_data(data_types_list)
     print("Loaded data, starting ros")
 
@@ -63,19 +63,19 @@ if __name__=="__main__":
 
         # Velocity_corrected
         velocity = [float(vars["vel"][i][0]), float(vars["vel"][i][1]), float(vars["vel"][i][2])]
-        orientation = [float(vars["rotation"][i][1]), float(vars["rotation"][i][2]), float(vars["rotation"][i][3]), float(vars["rotation"][i][0])]
-        orientation_matrix = tf.transformations.quaternion_matrix(orientation)
-        velocity_corrected = np.matmul(orientation_matrix[:3,:3].T, velocity)
+        #orientation = [float(vars["rotation"][i][1]), float(vars["rotation"][i][2]), float(vars["rotation"][i][3]), float(vars["rotation"][i][0])]
+        #orientation_matrix = tf.transformations.quaternion_matrix(orientation)
+        #velocity_corrected = np.matmul(orientation_matrix[:3,:3].T, velocity)
 
         vel_msg = Imu()
         vel_msg.header.frame_id = "buggy"
         vel_msg.header.stamp = rospy.Time.now()
-        vel_msg.linear_acceleration.x = velocity_corrected[0]
-        vel_msg.linear_acceleration.y = velocity_corrected[1]
-        vel_msg.linear_acceleration.z = velocity_corrected[2]
-        vel_msg.angular_velocity.x = float(vars["angular_vel"][i][0])
-        vel_msg.angular_velocity.y = float(vars["angular_vel"][i][1])
-        vel_msg.angular_velocity.z = float(vars["angular_vel"][i][2])
+        vel_msg.linear_acceleration.x = velocity[0]
+        vel_msg.linear_acceleration.y = velocity[1]
+        vel_msg.linear_acceleration.z = velocity[2]
+        vel_msg.angular_velocity.x = float(vars["angular"][i][0])
+        vel_msg.angular_velocity.y = float(vars["angular"][i][1])
+        vel_msg.angular_velocity.z = float(vars["angular"][i][2])
         vel_publisher.publish(vel_msg)
 
         # Pose
